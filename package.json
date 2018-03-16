@@ -1,0 +1,65 @@
+{
+  "name": "act-html-search",
+  "version": "0.0.1",
+  "description": "Takes websites with search strings as input and outputs found data through webhook",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "start-local": "APIFY_DEFAULT_DATASET_ID=local APIFY_DEFAULT_KEY_VALUE_STORE_ID=local APIFY_LOCAL_EMULATION_DIR=./localemulation/ node main.js",
+    "start-webhook": "node webhook.js",
+    "test": "mocha --compilers js:babel-core/register --recursive",
+    "test-cov": "node node_modules/isparta/bin/isparta cover --report html --report text node_modules/.bin/_mocha",
+    "lint": "eslint src test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gippy/html-search.git"
+  },
+  "keywords": [
+    "HTML",
+    "lookup",
+    "search",
+    "act",
+    "apify"
+  ],
+  "author": {
+    "name": "Apify",
+    "email": "support@apify.com",
+    "url": "https://www.apify.com"
+  },
+  "contributors": [
+    "Jaroslav Hejlek <jaroslav@apify.com>"
+  ],
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/gippy/html-search/issues"
+  },
+  "homepage": "https://github.com/gippy/html-search#readme",
+  "dependencies": {
+    "apify": "^0.5.12",
+    "bluebird": "^3.5.1",
+    "cheerio": "^1.0.0-rc.2",
+    "html-entities": "^1.2.1",
+    "lodash": "^4.17.4",
+    "proxy-chain": "^0.1.15",
+    "puppeteer": "^1.2.0"
+  },
+  "devDependencies": {
+    "express": "latest",
+    "body-parser": "latest",
+    "chai": "^4.1.2",
+    "eslint": "^4.9.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-jsx-a11y": "6.0.2",
+    "eslint-plugin-mocha": "^4.11.0",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-react": "7.4.0",
+    "isparta": "^4.0.0",
+    "jsdoc": "^3.5.5",
+    "jsdoc-export-default-interop": "^0.3.1",
+    "mocha": "^4.0.1",
+    "sinon": "^4.0.1",
+    "sinon-stub-promise": "^4.0.0"
+  }
+}
