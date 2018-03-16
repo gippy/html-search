@@ -1,7 +1,7 @@
 const http = require('http');
 const Apify = require('apify');
 const { isString } = require('lodash');
-const Promise = require('Bluebird');
+const Promise = require('bluebird');
 const DOMSearcher = require('./src/DOMSearcher');
 
 const sendResultsToWebhook = (webhook, response) => {
