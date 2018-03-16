@@ -1,4 +1,5 @@
 const http = require('http');
+const https = require('https');
 const Apify = require('apify');
 const { isString } = require('lodash');
 const Promise = require('bluebird');
@@ -8,11 +9,13 @@ const sendResultsToWebhook = (webhook, response) => {
     return new Promise((resolve, reject) => {
         const data = JSON.stringify(response);
         let port = 80
+        let client = http;
         if (webhook.startsWith('https')) {
-            webhook.replace('https://', '');
+            webhook = webhook.replace('https://', '');
             port = 443;
+            client = https;
         } else if (webhook.startsWith('http')) {
-            webhook.replace('http://', '');
+            webhook = webhook.replace('http://', '');
         }
 
         const webhookParts = webhook.split('/');
@@ -23,10 +26,12 @@ const sendResultsToWebhook = (webhook, response) => {
             hostname = hostnameParts[0];
             port = hostnameParts[1];
         }
+        if (port === 443) client = https;
+
         const options = {
           hostname,
           port,
-          path: path || '/',
+          path: `/${path}`,
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -35,9 +40,15 @@ const sendResultsToWebhook = (webhook, response) => {
         };
 
         console.log('Calling webhook for url', response.url);
-        const req = http.request(options, (res) => {
+        const req = client.request(options, (res) => {
           console.log(`Webhook status: ${res.statusCode}`);
-          resolve();
+          res.setEncoding('utf8');
+          res.on('data', (chunk) => {
+            console.log(`${chunk}`);
+          });
+          res.on('end', () => {
+            resolve();
+          });
         });
         req.on('error', (e) => {
           reject(`Problem with webhook: ${e.message}`);
@@ -95,12 +106,9 @@ Apify.main(async () => {
     };
 
     const handleFailedRequestFunction = async ({ request }) => {
-        console.log(`Failed: ${request.url}`);
-        await Apify.pushData({
-            message: 'request failed',
-            request,
-            date: new Date(),
-        });
+        console.error(`Failed: ${request.url}`);
+        console.error(request);
+        console.error(date);
     };
 
     puppeteerCrawler = new Apify.PuppeteerCrawler({

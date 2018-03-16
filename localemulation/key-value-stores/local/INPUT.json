@@ -3,5 +3,5 @@
 	"searchFor": ["free", "1 month free", "one month free", "special", "specials", "limited time", "limited-time"],
 	"ignore": ["free wifi", "free coffee", "free parking", "smoke-free"],
 	"_globalId": "123123",
-	"webhook": "localhost:3000"
+	"webhook": "https://requestb.in/1bpwwz51"
 }
