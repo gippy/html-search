@@ -1,6 +1,6 @@
 {
   "name": "act-html-search",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Takes websites with search strings as input and outputs found data through webhook",
   "main": "main.js",
   "scripts": {
@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/gippy/html-search#readme",
   "dependencies": {
-    "apify": "^0.5.12",
+    "apify": "^0.5.16",
     "bluebird": "^3.5.1",
     "cheerio": "^1.0.0-rc.2",
     "html-entities": "^1.2.1",

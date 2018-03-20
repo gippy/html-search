@@ -5,16 +5,45 @@ const { AllHtmlEntities } = require('html-entities');
 const entities = new AllHtmlEntities();
 const removeHTMLTags = (text) => text.replace(/<[^>]*>?/g, '');
 const replaceHTMLEntities = (text) => entities.decode(text);
-const removeSpaces = (text) => text.replace(/\s/g, '');
+const replaceSpaces = (text) => text.replace(/\s+/g, ' ');
 const convertCommasInNumbers = (text) => text.replace(/(\d+),(\d+)/g, '$1.$2');
 
 const normalize = (text) => {
     if (!isString(text)) return text;
     let normalized = removeHTMLTags(text).toLowerCase();
     normalized = replaceHTMLEntities(normalized);
-    normalized = removeSpaces(normalized);
+    normalized = replaceSpaces(normalized);
     normalized = convertCommasInNumbers(normalized);
+    normalized = normalized.split(' '); // create array of words
     return normalized;
+};
+
+const arrayContains = (textArray, searchStringArray) => {
+    let offset = 0;
+    let foundStartingIndex = textArray.indexOf(searchStringArray[0], offset);
+    while (foundStartingIndex !== -1) {
+        let containsWholeString = true;
+        for (let i = 1; i < searchStringArray.length; i++) {
+            if (textArray[foundStartingIndex + i] !== searchStringArray[i]) {
+                foundStartingIndex = textArray.indexOf(searchStringArray[0], offset);
+                containsWholeString = false;
+            }
+        }
+        offset = foundStartingIndex + 1;
+        if (containsWholeString) break;
+    }
+
+    return foundStartingIndex;
+};
+
+const arrayRemove = (textArray, searchStringArray) => {
+    const cleanedText = [...textArray];
+    let cleanedTextIgnoreStringPosition = arrayContains(cleanedText, searchStringArray);
+    while (cleanedTextIgnoreStringPosition !== -1) {
+        cleanedText.splice(cleanedTextIgnoreStringPosition, searchStringArray.length);
+        cleanedTextIgnoreStringPosition = arrayContains(cleanedText, searchStringArray);
+    }
+    return cleanedText;
 };
 
 const LETTER_DEDUCTION = 0.01;
@@ -107,17 +136,17 @@ class DOMSearcher {
         return selector;
     }
 
-    removeIgnoredTexts(text) {
+    removeIgnoredTexts(textArray) {
         this.normalizedIgnore.forEach(ignoreString => {
-            text = text.replace(ignoreString, '');
+            textArray = arrayRemove(textArray, ignoreString);
         });
-        return text;
+        return textArray;
     }
 
     searchElement(tagName, $element) {
         const { searchElement, $ } = this;
 
-        const elementText = $element.text();
+        const elementText = $element.text().trim();
         const elementData = {
             tag: tagName,
             class: $element.attr('class'),
@@ -125,8 +154,8 @@ class DOMSearcher {
         };
         const normalizedText = this.removeIgnoredTexts(normalize(elementText)); // to lower case to match most results
         const score = this.normalizedSearch.reduce((lastScore, searchString) => {
-            if (normalizedText.indexOf(searchString) === -1) return lastScore;
-            const remainingTextLength = normalizedText.replace(searchString, '').length;
+            if (arrayContains(normalizedText, searchString) === -1) return lastScore;
+            const remainingTextLength = arrayRemove(normalizedText, searchString).join(' ').length;
             const searchScore = (1 + (remainingTextLength * LETTER_DEDUCTION));
             return Math.max(lastScore, searchScore);
         }, 0);

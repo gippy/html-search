@@ -8,7 +8,7 @@ const DOMSearcher = require('./src/DOMSearcher');
 const sendResultsToWebhook = (webhook, response) => {
     return new Promise((resolve, reject) => {
         const data = JSON.stringify(response);
-        let port = 80
+        let port = 80;
         let client = http;
         if (webhook.startsWith('https')) {
             webhook = webhook.replace('https://', '');
@@ -23,42 +23,43 @@ const sendResultsToWebhook = (webhook, response) => {
         const path = webhookParts.slice(1).join('/');
         const hostnameParts = hostname.split(':');
         if (hostnameParts.length > 1) {
-            hostname = hostnameParts[0];
-            port = hostnameParts[1];
+            hostname = hostnameParts[0]; // eslint-disable-line
+            port = hostnameParts[1]; // eslint-disable-line
         }
         if (port === 443) client = https;
 
         const options = {
-          hostname,
-          port,
-          path: `/${path}`,
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(data)
-          }
+            hostname,
+            port,
+            path: `/${path}`,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(data),
+            },
         };
 
         console.log('Calling webhook for url', response.url);
         const req = client.request(options, (res) => {
-          console.log(`Webhook status: ${res.statusCode}`);
-          res.setEncoding('utf8');
-          res.on('data', (chunk) => {
-            console.log(`${chunk}`);
-          });
-          res.on('end', () => {
-            resolve();
-          });
+            console.log(`Webhook status: ${res.statusCode}`);
+            res.setEncoding('utf8');
+            res.on('data', (chunk) => {
+                console.log(`${chunk}`);
+            });
+
+            res.on('end', () => {
+                resolve();
+            });
         });
         req.on('error', (e) => {
-          reject(`Problem with webhook: ${e.message}`);
+            reject(new Error(`Problem with webhook: ${e.message}`));
         });
 
         // write data to request body
         req.write(data);
         req.end();
     });
-}
+};
 
 Apify.main(async () => {
     const input = await Apify.getValue('INPUT');
@@ -66,8 +67,6 @@ Apify.main(async () => {
     if (!url) throw new Error('input.url is missing!!!!');
 
     if (isString(url)) url = [url];
-
-    let puppeteerCrawler;
 
     const requests = url.map(website => ({
         url: website,
@@ -85,19 +84,20 @@ Apify.main(async () => {
     const gotoFunction = ({ request, page }) => page.goto(request.url, { timeout: 180000, waitUntil: 'networkidle2' });
 
     const handlePageFunction = async ({ request, page }) => {
-        const html = await page.evaluate(() => document.documentElement.innerHTML);
+        // Delay if provided through INPUT
+        if (input.delay) await new Promise(resolve => setTimeout(resolve, input.delay));
+        const html = await page.evaluate(() => document.documentElement.innerHTML); // eslint-disable-line
         if (html) {
-            const htmlLoadedAt = new Date();
             const domSearcher = new DOMSearcher({ html });
             const results = domSearcher.find(input.searchFor, input.ignore);
             if (results && results.length) {
                 const response = {
-                    '_globalId': input._globalId,
+                    _globalId: input._globalId,
                     url: request.url,
                     htmlSearched: new Date(),
-                    htmlFound: results
+                    htmlFound: results,
                 };
-                await Apify.setValue('OUTPUT', JSON.stringify(response), { contentType: 'application/json' });
+                await Apify.setValue('OUTPUT', JSON.stringify(response, null, 4), { contentType: 'application/json' });
                 await sendResultsToWebhook(input.webhook, response);
                 // we only care about first response, kill instance
                 process.exit(0);
@@ -108,17 +108,17 @@ Apify.main(async () => {
     const handleFailedRequestFunction = async ({ request }) => {
         console.error(`Failed: ${request.url}`);
         console.error(request);
-        console.error(date);
+        console.error(new Date());
     };
 
-    puppeteerCrawler = new Apify.PuppeteerCrawler({
+    const puppeteerCrawler = new Apify.PuppeteerCrawler({
         requestList,
         minConcurrency: 1,
         maxConcurrency: 1,
         abortInstanceAfterRequestCount: 100,
         maxOpenPagesPerInstance: 150,
         disableProxy: false,
-        groups:['SHADER'],
+        groups: ['SHADER'],
         gotoFunction,
         handlePageFunction,
         handleFailedRequestFunction,
@@ -126,10 +126,9 @@ Apify.main(async () => {
         puppeteerConfig: { dumpio: false },
     });
 
-    setInterval(() => Apify.setValue('request-list-state', requestList.getState()), 60000);
-
-    // Killing process every 2h to avoid problems with memory leak
-    setTimeout(() => process.exit(1), 1.5 * 60 * 60 * 1000);
+    // Killing process every 10 minutes to avoid problems with memory leak and overusage
+    setTimeout(() => process.exit(1), 10 * 60 * 1000);
 
     await puppeteerCrawler.run();
+    console.log('Could not find specials in provided urls');
 });

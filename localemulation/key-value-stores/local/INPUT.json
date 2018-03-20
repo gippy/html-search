@@ -1,7 +1,24 @@
 {
-	"url": ["https://colonyatthelakes.com/", "http://www.mettowerseattle.com/", "https://www.amli.com/apartments/seattle/downtown-seattle/seattle/arc"],
-	"searchFor": ["free", "1 month free", "one month free", "special", "specials", "limited time", "limited-time"],
-	"ignore": ["free wifi", "free coffee", "free parking", "smoke-free"],
-	"_globalId": "123123",
-	"webhook": "https://requestb.in/1bpwwz51"
+    "url": [
+        "https://9gag.com/trending"
+    ],
+    "searchFor": [
+        "1 month free",
+        "one month free",
+        "special",
+        "specials",
+        "limited time",
+        "limited-time",
+        "reduced monthly rate"
+    ],
+    "ignore": [
+        "free wifi",
+        "free coffee",
+        "free parking",
+        "smoke-free",
+        "password-free"
+    ],
+    "_globalId": "1231232",
+    "delay": 0,
+    "webhook": "http://requestbin.fullcontact.com/q7fi5lq7"
 }
