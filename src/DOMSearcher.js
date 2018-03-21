@@ -7,6 +7,7 @@ const removeHTMLTags = (text) => text.replace(/<[^>]*>?/g, '');
 const replaceHTMLEntities = (text) => entities.decode(text);
 const replaceSpaces = (text) => text.replace(/\s+/g, ' ');
 const convertCommasInNumbers = (text) => text.replace(/(\d+),(\d+)/g, '$1.$2');
+const removePunctuation = (text) => text.replace(/[!?.,;@#()-_*]+([^!?.,;@#()-_]+)/, '$1').replace(/([^!?.,;@#()-_*]+)[!?.,;@#()-_*]+/, '$1');
 
 const normalize = (text) => {
     if (!isString(text)) return text;
@@ -14,7 +15,7 @@ const normalize = (text) => {
     normalized = replaceHTMLEntities(normalized);
     normalized = replaceSpaces(normalized);
     normalized = convertCommasInNumbers(normalized);
-    normalized = normalized.split(' '); // create array of words
+    normalized = normalized.split(' ').map(removePunctuation); // create array of words
     return normalized;
 };
 
