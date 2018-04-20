@@ -3,7 +3,7 @@ const { concat, isArray, sortBy, isString } = require('lodash'); // eslint-disab
 const { AllHtmlEntities } = require('html-entities');
 
 const entities = new AllHtmlEntities();
-const removeHTMLTags = (text) => text.replace(/<[^>]*>?/g, '');
+const removeHTMLTags = (text) => text.replace(/<[^>]*>?/g, ' ');
 const replaceHTMLEntities = (text) => entities.decode(text);
 const replaceSpaces = (text) => text.replace(/\s+/g, ' ');
 const convertCommasInNumbers = (text) => text.replace(/(\d+),(\d+)/g, '$1.$2');
@@ -22,6 +22,7 @@ const normalize = (text) => {
 const arrayContains = (textArray, searchStringArray) => {
     let offset = 0;
     let foundStartingIndex = textArray.indexOf(searchStringArray[0], offset);
+
     while (foundStartingIndex !== -1) {
         let containsWholeString = true;
         for (let i = 1; i < searchStringArray.length; i++) {
@@ -52,7 +53,9 @@ const LETTER_DEDUCTION = 0.01;
 class DOMSearcher {
     constructor({ $, html }) {
         if (!$ && !html) throw new Error('DOMSearcher requires cheerio instance or HTML code.');
-        this.$ = $ || cheerio.load(html);
+        this.$ = $ || cheerio.load(html, {
+            normalizeWhitespace: true,
+        });
         this.searchElement = this.searchElement.bind(this);
         this.findPath = this.findPath.bind(this);
         this.createSelector = this.createSelector.bind(this);
@@ -147,7 +150,7 @@ class DOMSearcher {
     searchElement(tagName, $element) {
         const { searchElement, $ } = this;
 
-        const elementText = $element.text().trim();
+        const elementText = $element.html().trim();
         const elementData = {
             tag: tagName,
             class: $element.attr('class'),
