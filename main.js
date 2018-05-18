@@ -4,6 +4,7 @@ const Apify = require('apify');
 const { isString } = require('lodash');
 const Promise = require('bluebird');
 const DOMSearcher = require('./src/DOMSearcher');
+const cleanHtml = require('./src/clean-html');
 
 const sendResultsToWebhook = (webhook, response) => {
     return new Promise((resolve, reject) => {
@@ -86,8 +87,10 @@ Apify.main(async () => {
     const handlePageFunction = async ({ request, page }) => {
         // Delay if provided through INPUT
         if (input.delay) await new Promise(resolve => setTimeout(resolve, input.delay));
-        const html = await page.evaluate(() => document.documentElement.innerHTML); // eslint-disable-line
+        let html = await page.evaluate(() => document.documentElement.innerHTML); // eslint-disable-line
         if (html) {
+            html = cleanHtml(html);
+            await Apify.setValue('html', html, { contentType: 'text/html' });
             const domSearcher = new DOMSearcher({ html });
             const results = domSearcher.find(input.searchFor, input.ignore);
             if (results && results.length) {
